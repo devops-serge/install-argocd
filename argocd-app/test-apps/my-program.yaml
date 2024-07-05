@@ -1,0 +1,25 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: my-program-test
+  namespace: argocd
+spec:
+  project: default
+  source:
+    targetRevision: main
+    repoURL: 'https://gitlab.devops-serge.com/mygroup/myproject.git'
+    path: .helm
+    helm:
+      releaseName: my-program-test
+      valueFiles:
+        - values.yaml
+      values: |
+        env: test
+  destination:
+    server: 'https://kubernetes.default.svc'
+    namespace: my-program-test
+  syncPolicy:
+    automated:
+      selfHeal: true
+    syncOptions:
+    - CreateNamespace=true

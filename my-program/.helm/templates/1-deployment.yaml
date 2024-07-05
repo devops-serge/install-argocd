@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Chart.Name }}
+spec:
+  selector:
+    matchLabels:
+      app: {{ .Chart.Name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Chart.Name }}
+      annotations:
+        checksum/config: >-
+          {{ include (print $.Template.BasePath "/0-configmap.yaml") . | sha256sum }}
+    spec:
+      containers:
+      - name: {{ .Chart.Name }}
+        image: nginx:alpine3.19
+        volumeMounts:
+        - name: index-html-volume
+          mountPath: /usr/share/nginx/html/index.html
+          subPath: index.html
+        ports:
+          - containerPort: 80
+      volumes:
+      - name: index-html-volume
+        configMap:
+          name: index-html
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Chart.Name }}
+spec:
+  selector:
+    app: {{ .Chart.Name }}
+  ports:
+  - name: http
+    port: 80
+    targetPort: 80
+    protocol: TCP
